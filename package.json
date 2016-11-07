@@ -20,6 +20,7 @@
     "node-ip": "^0.1.2"
   },
   "dependencies": {
+    "apicache": "^0.3.4",
     "forever": "^0.15.3",
     "install": "^0.8.1",
     "ip": "^1.1.3",
