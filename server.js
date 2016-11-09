@@ -99,15 +99,18 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
         isInArray: function(value, array) {
             return array.indexOf(value) > -1;
         },
-        messagingErr: function(txt, varl) {
-            errors_handling.Message = txt;
-            varl = errors_handling;
-            return varl;
+        messagingErr: function(msg, val) {
+            errors_handling.Message = msg;
+            val = errors_handling;
+            return val;
         },
-        messagingSucc: function(msg, varl) {
+        messagingSucc: function(msg, val) {
             success_handling.Message = msg;
-            varl = success_handling;
-            return varl;
+            val = success_handling;
+            return val;
+        },
+        returnMessaging: function(msg, val, type) {
+            if(type === "success") { return _constructor.messagingSucc(msg, val) } else { return _constructor.messagingErr(msg, val) }
         },
         logs: function(module, ip, request, appkey) {
             ref.once("value", function(data) {
@@ -135,28 +138,28 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
     
     // Errors Class   
     var _messages = {
-        login_success: function(){ 
-            return _constructor.messagingSucc('User Authenticated!', 'login_success')
+        login_success: { 
+            get: _constructor.returnMessaging('User Authenticated!', 'login_success', 'success')
         },
-        email_success: function(){
-            return _constructor.messagingSucc('Email sent!', 'email_success')
+        email_success: {
+            get: _constructor.returnMessaging('Email sent!', 'email_success', 'success')
         },
-        signup_success: function(){
-            return _constructor.messagingSucc('Sign up completed!', 'signup_success')
+        signup_success: {
+            get: _constructor.returnMessaging('Sign up completed!', 'signup_success', 'success')
         },
-        key_error: function(){
-            return _constructor.messagingErr('This API key is invalid.', 'key_error')
+        key_error: {
+            get: _constructor.returnMessaging('This API key is invalid.', 'key_error', 'error')
         },
-        key_missing: function(){
-            return _constructor.messagingErr('Missing API key.', 'key_missing')
+        key_missing: {
+            get: _constructor.returnMessaging('Missing API key.', 'key_missing', 'error')
         },
-        missing_params: function(){
-            return _constructor.messagingErr('Missing query strings. Please add them.', 'missing_params')
+        missing_params: {
+            get: _constructor.returnMessaging('Missing query strings. Please add them.', 'missing_params', 'error')
         },
-        email_err: function(){
-            return _constructor.messagingErr('Could not send email. Please try again.', 'email_err')
+        email_err: {
+            get: _constructor.returnMessaging('Could not send email. Please try again.', 'email_err', 'error')
         }
-    }
+    };
     
 /*
 *   # Registration API
