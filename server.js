@@ -43,14 +43,6 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
     app.enable('verbose errors');
     app.enable('trust proxy');
     
-    // Certificates definition
-    /*
-    var httpsOpts = {
-        key: fs.readFileSync(path.join(cert, "server.key")),
-        cert: fs.readFileSync(path.join(cert, "server.crt"))
-    };
-    */
-    
     // Function checking the ports
     var ports = function(http_p, https_p) {
         http_app.set('port', http_p);
@@ -110,7 +102,15 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
             return val;
         },
         returnMessaging: function(msg, val, type) {
-            if(type === "success") { return _constructor.messagingSucc(msg, val) } else { return _constructor.messagingErr(msg, val) }
+            if(type === "success") {
+                return function() { 
+                    return _constructor.messagingSucc(msg, val);
+                } 
+            } else { 
+                return function() { 
+                    return _constructor.messagingErr(msg, val);
+                }
+            }
         },
         logs: function(module, ip, request, appkey) {
             ref.once("value", function(data) {
@@ -172,7 +172,7 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
         res.setHeader('Content-Type', 'application/json');
         try { 
             // Check whether the query string "&developer=" exist
-            if(!req.query.developer) throw _messages.missing_params();
+            if(!req.query.developer) throw _messages.missing_params.get();
             
             if(req.query.developer) {
                 var devObject = {'developer' : '', 'timeStamp': ''};
@@ -228,14 +228,14 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
         // Catch errors
         try { 
             // Erros handling
-            if(!req.query.name || !req.query.pr || !req.query.id) throw _messages.missing_params();
-            if(!req.query.apikey) throw _messages.key_missing();
+            if(!req.query.name || !req.query.pr || !req.query.id) throw _messages.missing_params.get();
+            if(!req.query.apikey) throw _messages.key_missing.get();
             
             //Check API key in API call
             if(req.query.apikey) {
                 _constructor.apikey_verification(req.query.apikey, function(val) {
                     if(val != true) {
-                        OO.isInValid(_messages.key_error());
+                        OO.isInValid(_messages.key_error.get());
                     } else {
                         _constructor.logs(module, ip.address(), requestLog, req.query.apikey);
                         // Write new doctor if everything is in order
@@ -272,17 +272,17 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
         var module = "logs/authentication";
         var requestLog = req.protocol + '://' + req.get('host') + req.originalUrl;
         try {
-            if(!req.query.email && !req.query.password) throw _messages.missing_params();
-            if(!req.query.apikey) throw _messages.key_missing();
+            if(!req.query.email && !req.query.password) throw _messages.missing_params.get();
+            if(!req.query.apikey) throw _messages.key_missing.get();
             if(req.query.email && req.query.password) {
                 _constructor.apikey_verification(req.query.apikey, function(val) {
                     if(val != true) {
-                        res.status(200).send(JSON.stringify(_messages.key_error()));
+                        res.status(200).send(JSON.stringify(_messages.key_error.get()));
                     } else {
                         _constructor.logs(module, ip.address(), requestLog, req.query.apikey);
                         auth.createUserWithEmailAndPassword(req.query.email, req.query.password)
                         .then(function() {
-                            res.status(200).send(JSON.stringify(_messages.signup_success()));
+                            res.status(200).send(JSON.stringify(_messages.signup_success.get()));
                             //auth.currentUser.sendEmailVerification();
                         })
                         .catch(function(error) {
@@ -303,16 +303,16 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
             _constructor.apikey_verification(req.query.apikey, function(val) {
                 if(val === true) {
                     firebase.auth().signInWithEmailAndPassword(req.query.email, req.query.password).then(function(){
-                        res.status(200).send(JSON.stringify(_messages.login_success()));
+                        res.status(200).send(JSON.stringify(_messages.login_success.get()));
                     }).catch(function(error) {
                         res.status(500).send(JSON.stringify(error));
                     });
                 } else {
-                    res.status(500).send(JSON.stringify(_messages.key_error()));
+                    res.status(500).send(JSON.stringify(_messages.key_error.get()));
                 }
             })
         } else {
-            res.status(500).send(JSON.stringify(_messages.missing_params()));
+            res.status(500).send(JSON.stringify(_messages.missing_params.get()));
         }
     });
     
@@ -323,16 +323,16 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
                 if(val === true) {
                     var emailAddress = req.query.email;
                     auth.sendPasswordResetEmail(req.query.email).then(function() {
-                        res.status(200).send(JSON.stringify(_messages.email_success()));
+                        res.status(200).send(JSON.stringify(_messages.email_success.get()));
                     }, function(error) {
                         res.status(500).send(JSON.stringify(error));
                     });
                 } else {
-                    res.status(500).send(JSON.stringify(_messages.key_error()));
+                    res.status(500).send(JSON.stringify(_messages.key_error.get()));
                 }
             });
         } else {
-            res.status(200).send(JSON.stringify(_messages.missing_params()));
+            res.status(200).send(JSON.stringify(_messages.missing_params.get()));
         }
     });
     
@@ -356,7 +356,7 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
     // Handle 404 Error
     app.use(function(req, res, next) {
         res.status(400);
-        console.log('*************');
+        console.log(' ');
         console.log('GET ' + req.protocol + '://' + req.hostname + ':' + app.get('port') + req.originalUrl);
         console.log('At %d', Date.now());
         console.log('HTTP: 404 Error');
@@ -375,6 +375,14 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
 *   # SERVER CONFIGURATION
 *   protocol: http => port :3000, https => port :4000
 */
+
+    // Certificates definition
+    /*
+    var httpsOpts = {
+        key: fs.readFileSync(path.join(cert, "server.key")),
+        cert: fs.readFileSync(path.join(cert, "server.crt"))
+    };
+    */
 
     // Start HTTP server
     http.createServer(http_app).listen(http_app.get('port'), function () {
