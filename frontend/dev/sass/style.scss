@@ -1,0 +1,40 @@
+@import "_variables";
+
+body {background-color: $main; color: $maintext;}
+section {background-color: #FFF; min-height: 500px; padding: 20px;}
+header nav, article, section, footer {margin: $centralise; width: $main_width;}
+header, article, section {margin-bottom: 2em;}
+h1, h2, h3, h4 {color: $header;}
+.container-fluid {margin: 0; padding: 0;}
+
+header {
+    background-color: $header; height: 60px; 
+    nav {
+        position: relative; top: 50%; transform: perspective(1px) translateY(-50%); color: #FFF; font-size: 14px;
+        a {color: #FFF; font-size: 16px; margin-left: 1em;}
+        a:hover {text-decoration: none; border-bottom: solid 2px #FFF; padding-bottom: 0.75em;}
+        i {font-size: 30px !important; margin-right: 1em;}
+    } 
+}
+div {
+    .qualitycare { 
+        img {width: $icon_width;} 
+        span {margin-left: 1em; font-weight: bold; color: #787474;}
+    }
+    .footer-icon {
+        position: relative; top: 50%; transform: perspective(1px) translateY(50%);
+        i {margin-right: 0.5em;}
+    }
+}
+
+section.home {
+    h2 {text-transform: capitalize;}
+    .row img {width: 35px; position: relative; top: 50%; transform: perspective(1px) translateY(45%);}
+    p {margin: 1em auto;}
+    div.full_length {width: 100%; height: 100%;}
+    div.sub {margin: 2em 0; width: 100%; div {margin: $centralise; width: 200px; text-align: center;} button {border-radius: 0; padding: 10px; padding: 15px 40px;}}
+}
+
+footer {
+    p {font-size: 11px;}
+}

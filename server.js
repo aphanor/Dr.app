@@ -36,7 +36,7 @@ var express = require('express'),
 */
 
 // Create SSL Certificates
-pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
+// pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
     var env;
     app.use(bodyParser.json());
     app.set('view engine', 'jade');
@@ -125,10 +125,21 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
         },
         apikey_verification: function(key, callback) {
             ref_api.once("value").then(function(snapshot) {
-                // Retrieve API keys from the database
                 apikeys = Object.keys(snapshot.val());
                 callback(_constructor.isInArray(key, apikeys));
             });
+        },
+        timeConverter: function(timestamp) {
+            var unix_timestamp = new Date(timestamp * 1000),
+                months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                year = unix_timestamp.getFullYear(),
+                month = months[unix_timestamp.getMonth()],
+                date = unix_timestamp.getDate(),
+                hour = unix_timestamp.getHours(),
+                min = "0" + unix_timestamp.getMinutes(),
+                sec = "0" + unix_timestamp.getSeconds(),
+                time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min.substr(-2) + ':' + sec.substr(-2);
+            return time;
         }
     }
     
@@ -157,9 +168,10 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
             get: _constructor.returnMessaging('Missing query strings. Please add them.', 'missing_params', 'error')
         },
         email_err: {
-            get: _constructor.returnMessaging('Could not send email. Please try again.', 'email_err', 'error')
+            get: _constructor.returnMessaging('Could not send email. Please try again!', 'email_err', 'error')
         }
     };
+    console.log(_constructor.timeConverter(Math.floor(Date.now() / 1000)));
     
 /*
 *   # Registration API
@@ -181,7 +193,7 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
                 
                 // Push key in the database
                 ref.child("apikeys").push(devObject);
-                res.status(200).send(JSON.stringify(devObject));
+                res.status(200).send(JSON.stringify(devObject, null, 3));
             }
         }
         catch(err) {
@@ -202,12 +214,12 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
             drObject.HasErrors = false;
             drObject.TotalResults = data.numChildren();
             drObject.Results = data.val();
-            drOcject = JSON.stringify(drObject);
+            drOcject = JSON.stringify(drObject, null, 3);
             // Send response back
             res.status(200).send(drOcject);
         }, function (errorObject) {
             console.log("The read failed: " + errorObject.code);
-            res.status(500).send(JSON.stringify(errorObject.code));
+            res.status(500).send(JSON.stringify(errorObject.code, null, 3));
         });
     });
     
@@ -219,10 +231,10 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
         // Object Oriented functions
         var OO = {
             isValid: function(objectData) {
-                return res.status(200).send(JSON.stringify(objectData));
+                return res.status(200).send(JSON.stringify(objectData, null, 3));
             },
             isInValid: function(objtData) {
-                return res.status(500).send(JSON.stringify(objtData));
+                return res.status(500).send(JSON.stringify(objtData, null, 3));
             }
         };
         // Catch errors
@@ -277,23 +289,23 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
             if(req.query.email && req.query.password) {
                 _constructor.apikey_verification(req.query.apikey, function(val) {
                     if(val != true) {
-                        res.status(200).send(JSON.stringify(_messages.key_error.get()));
+                        res.status(200).send(JSON.stringify(_messages.key_error.get(), null, 3));
                     } else {
                         _constructor.logs(module, ip.address(), requestLog, req.query.apikey);
                         auth.createUserWithEmailAndPassword(req.query.email, req.query.password)
                         .then(function() {
-                            res.status(200).send(JSON.stringify(_messages.signup_success.get()));
+                            res.status(200).send(JSON.stringify(_messages.signup_success.get(), null, 3));
                             //auth.currentUser.sendEmailVerification();
                         })
                         .catch(function(error) {
-                            res.status(500).send(JSON.stringify(error))
+                            res.status(500).send(JSON.stringify(error, null, 3))
                         });
                     }
                 });
             }
         }
         catch(err) {
-            res.status(500).send(JSON.stringify(err));
+            res.status(500).send(JSON.stringify(err, null, 3));
         }
     });
     
@@ -303,16 +315,16 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
             _constructor.apikey_verification(req.query.apikey, function(val) {
                 if(val === true) {
                     firebase.auth().signInWithEmailAndPassword(req.query.email, req.query.password).then(function(){
-                        res.status(200).send(JSON.stringify(_messages.login_success.get()));
+                        res.status(200).send(JSON.stringify(_messages.login_success.get(), null, 3));
                     }).catch(function(error) {
-                        res.status(500).send(JSON.stringify(error));
+                        res.status(500).send(JSON.stringify(error, null, 3));
                     });
                 } else {
-                    res.status(500).send(JSON.stringify(_messages.key_error.get()));
+                    res.status(500).send(JSON.stringify(_messages.key_error.get(), null, 3));
                 }
             })
         } else {
-            res.status(500).send(JSON.stringify(_messages.missing_params.get()));
+            res.status(500).send(JSON.stringify(_messages.missing_params.get(), null, 3));
         }
     });
     
@@ -323,16 +335,16 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
                 if(val === true) {
                     var emailAddress = req.query.email;
                     auth.sendPasswordResetEmail(req.query.email).then(function() {
-                        res.status(200).send(JSON.stringify(_messages.email_success.get()));
+                        res.status(200).send(JSON.stringify(_messages.email_success.get(), null, 3));
                     }, function(error) {
-                        res.status(500).send(JSON.stringify(error));
+                        res.status(500).send(JSON.stringify(error, null, 3));
                     });
                 } else {
-                    res.status(500).send(JSON.stringify(_messages.key_error.get()));
+                    res.status(500).send(JSON.stringify(_messages.key_error.get(), null, 3));
                 }
             });
         } else {
-            res.status(200).send(JSON.stringify(_messages.missing_params.get()));
+            res.status(200).send(JSON.stringify(_messages.missing_params.get(), null, 3));
         }
     });
     
@@ -358,8 +370,9 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
         res.status(400);
         console.log(' ');
         console.log('GET ' + req.protocol + '://' + req.hostname + ':' + app.get('port') + req.originalUrl);
-        console.log('At %d', Date.now());
+        console.log('On ' + _constructor.timeConverter(Math.floor(Date.now() / 1000)));
         console.log('HTTP: 404 Error');
+        console.log(' ');
         next();
         res.render('404.jade', { url: req.protocol + '://' + req.headers.host + req.path });
         return;
@@ -377,12 +390,11 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
 */
 
     // Certificates definition
-    /*
-    var httpsOpts = {
+        var httpsOpts = {
         key: fs.readFileSync(path.join(cert, "server.key")),
         cert: fs.readFileSync(path.join(cert, "server.crt"))
     };
-    */
+   
 
     // Start HTTP server
     http.createServer(http_app).listen(http_app.get('port'), function () {
@@ -392,8 +404,9 @@ pem.createCertificate({days:365, selfSigned:true}, function(err, keys) {
         console.log('HTTP application is running on port ' + http_app.get('port'))
     });
     // Start HTTPS server
-    https.createServer({key: keys.serviceKey, cert: keys.certificate}, app).listen(app.get('port'), function() {
+    // Other values for HTTPS {key: keys.serviceKey, cert: keys.certificate}
+    https.createServer(httpsOpts, app).listen(app.get('port'), function() {
         console.log('HTTPS server listening on port ' + app.get('port'));
         console.log('  ');
     });
-});
+// });

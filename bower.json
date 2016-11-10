@@ -1,0 +1,29 @@
+{
+  "name": "doctorapp",
+  "description": "Doctor app based on Node.js and AngularJS",
+  "main": "server.js",
+  "authors": [
+    "Alexis Phanor"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/aphanor/dr.app",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "source",
+    "src",
+    "external",
+    "spec",
+    ".bowerrc",
+    ".gitignore",
+    ".jshintignore",
+    ".jshintrc",
+    "bower.json",
+    "gruntfile.js",
+    "package.json",
+    "README.md"
+  ]
+}
